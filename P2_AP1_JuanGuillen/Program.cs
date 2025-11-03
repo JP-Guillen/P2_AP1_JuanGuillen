@@ -1,6 +1,15 @@
+using Microsoft.EntityFrameworkCore;
 using P2_AP1_JuanGuillen.Components;
+using P2_AP1_JuanGuillen.DAL;
+using P2_AP1_JuanGuillen.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var ConStr = builder.Configuration.GetConnectionString("ConStr");
+builder.Services.AddDbContextFactory<Contexto>(o => o.UseSqlite(ConStr));
+
+builder.Services.AddScoped<RegistroServices>();
+
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

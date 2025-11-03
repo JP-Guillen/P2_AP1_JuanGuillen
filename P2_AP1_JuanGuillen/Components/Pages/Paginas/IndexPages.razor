@@ -1,0 +1,33 @@
+﻿@page "/inicio"
+@using P2_AP1_JuanGuillen.Models
+
+
+
+<PageTitle>Registro</PageTitle>
+<div class="container">
+	<div class="card shadow-lg">
+		<div class="card-header d-flex justify-content-between align-items-center">
+			<h1 class="card-title"><strong>Registro</strong></h1>
+			<a href="/Registro/crear" class="btn btn-primary bi bi-plus-square"> Crear</a>
+		</div>
+
+	<div class="card-body">
+
+		<div class="row mb-3">
+			<div class="col-md-3">
+					<label class="col-form-label"><strong>Desde:</strong></label>
+			</div>
+		</div>
+
+		<div class="col-md-5">
+			<label class="col-form-label"><strong>Hasta:</strong></label>
+		</div>
+		</div>
+	</div>
+</div>
+
+@code {
+
+	public Registro registro { get; set; }
+
+}
