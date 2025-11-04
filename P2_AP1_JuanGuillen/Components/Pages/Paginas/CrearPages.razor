@@ -1,0 +1,152 @@
+﻿@page "/Registro/crear"
+@inject RegistroServices registroServices
+@rendermode InteractiveServer
+@inject NavigationManager nav
+
+<EditForm Model="pedidos" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="container">
+        <div class="card shadow-lg mt-4">
+            <div class="card-header text-center ">
+                <h4>Registrar Pedido</h4>
+            </div>
+
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label><strong>Pedido Id:</strong></label>
+                        <InputNumber class="form-control" disabled @bind-Value="pedidos.PedidoId"></InputNumber>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label><strong>Fecha:</strong></label>
+                        <InputDate class="form-control" @bind-Value="pedidos.Fecha" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label><strong>Cliente:</strong></label>
+                        <InputText class="form-control" @bind-Value="pedidos.NombreCliente"></InputText>
+                    </div>
+                </div>
+
+                <hr />
+                <h5>Detalles</h5>
+
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        <label>Componente</label>
+                        <InputSelect class="form-select" @bind-Value="nuevoDetalle.ComponenteId">
+                            <option value="0">-- Seleccione --</option>
+                            @foreach (var c in componentes)
+                            {
+                                <option value="@c.ComponenteId">@c.Descripcion</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label>Cantidad</label>
+                        <InputNumber class="form-control" @bind-Value="nuevoDetalle.Cantidad" />
+                    </div>
+
+                    <div class="col-md-2">
+                        <label>Precio</label>
+                        <InputNumber class="form-control" @bind-Value="nuevoDetalle.precio" />
+                    </div>
+
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-success w-100" @onclick="AgregarDetalle">
+                            <i class="bi bi-plus-circle"></i> Agregar
+                        </button>
+                    </div>
+                </div>
+
+                <table class="table table-striped mt-3">
+                    <thead class="table">
+                        <tr>
+                            <th>Componente</th>
+                            <th>Precio</th>
+                            <th>Cantidad</th>
+                            <th>Importe</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var det in Listadetalles)
+                        {
+                            var comp = componentes.FirstOrDefault(c => c.ComponenteId == det.ComponenteId);
+                            <tr>
+                                <td>@comp?.Descripcion</td>
+                                <td>@det.precio</td>
+                                <td>@det.Cantidad</td>
+                                <td>@(det.Cantidad* det.precio).ToString("0.00")</td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm" @onclick="() => EliminarDetalle(det)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <div class="d-flex justify-content-end mt-4 gap-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Guardar Todo
+                    </button>
+
+                    <button type="button" class="btn btn-secondary" @onclick="VolverAtras">
+                        <i class="bi bi-arrow-left"></i> Volver Atrás
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    private Pedidos pedidos { get; set; } = new();
+    private PedidosDetalles nuevoDetalle { get; set; } = new();
+    private List<PedidosDetalles> Listadetalles = new();
+    private List<Componentes> componentes = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        componentes = await registroServices.ListarComponentes();
+    }
+
+    private async Task Guardar()
+    {
+        pedidos.PedidosDetalles = Listadetalles;
+        var ok = await registroServices.Insertar(pedidos);
+        if (ok)
+            nav.NavigateTo("/inicio");
+    }
+
+    private void AgregarDetalle()
+    {
+        if (nuevoDetalle.ComponenteId == 0 || nuevoDetalle.Cantidad <= 0)
+            return;
+
+        Listadetalles.Add(new PedidosDetalles
+        {
+            ComponenteId = nuevoDetalle.ComponenteId,
+            Cantidad = nuevoDetalle.Cantidad,
+            precio = nuevoDetalle.precio
+        });
+
+        nuevoDetalle = new();
+    }
+
+    private void EliminarDetalle(PedidosDetalles detalle)
+    {
+        Listadetalles.Remove(detalle);
+    }
+
+    private void VolverAtras()
+    {
+        nav.NavigateTo("/inicio");
+    }
+}
