@@ -1,9 +1,10 @@
 ﻿@page "/inicio"
 @using P2_AP1_JuanGuillen.Models
-
-
+@inject RegistroServices registroServices
+@rendermode InteractiveServer
 
 <PageTitle>Registro</PageTitle>
+
 <div class="container">
 	<div class="card shadow-lg">
 		<div class="card-header d-flex justify-content-between align-items-center">
@@ -11,23 +12,90 @@
 			<a href="/Registro/crear" class="btn btn-primary bi bi-plus-square"> Crear</a>
 		</div>
 
-	<div class="card-body">
-
-		<div class="row mb-3">
-			<div class="col-md-3">
+		<div class="card-body">
+			<div class="row mb-3">
+				<div class="col-md-3">
 					<label class="col-form-label"><strong>Desde:</strong></label>
-			</div>
-		</div>
+					<InputDate class="form-control" @bind-Value="FechaDesde"></InputDate>
+				</div>
 
-		<div class="col-md-5">
-			<label class="col-form-label"><strong>Hasta:</strong></label>
-		</div>
+				<div class="col-md-3">
+					<label class="col-form-label"><strong>Hasta:</strong></label>
+					<InputDate class="form-control" @bind-Value="Fechahasta"></InputDate>
+				</div>
+
+				<div class=" col-md-3">
+					<label class=" form-label"><strong>Buscar por:</strong></label>
+					<InputText class="form-control" @bind-value="TextoFiltro"></InputText>
+				</div>
+
+				<div class="col-md-3 d-flex align-items-end">
+					<button class="btn btn-success bi bi-search" @onclick="Buscar">Buscar</button>
+				</div>
+			</div>
+
+			<div class="table-responsive">
+				<table class="table table-striped text-center">
+					<thead>
+						<tr>
+							<th>ID</th>
+							<th>Cliente</th>
+							<th>Fecha</th>
+							<th>Total</th>
+						</tr>
+					</thead>
+
+					<tbody>
+						@foreach (var dato in ListaFiltrada)
+						{
+							<tr>
+								<td>@dato.PedidoId</td>
+								<td>@dato.NombreCliente</td>
+								<td>@dato.Fecha.ToShortDateString()</td>
+								<td>@dato.Total</td>
+							</tr>
+						}
+					</tbody>
+
+				</table>
+			</div>
 		</div>
 	</div>
 </div>
 
 @code {
+	private DateTime? FechaDesde { get; set; }
+	private DateTime? Fechahasta { get; set; }
+	private string TextoFiltro { get; set; } = string.Empty;
 
-	public Pedidos pedidos { get; set; }
+	private List<Pedidos> ListPedido = new();
+	private List<Pedidos> ListaFiltrada = new();
 
+	protected override async Task OnInitializedAsync()
+	{
+		ListPedido = await registroServices.Listar(e => true);
+		ListaFiltrada = new List<Pedidos>(ListPedido);
+	}
+
+	private void Buscar()
+	{
+		ListaFiltrada = ListPedido
+			.Where(e =>
+				(string.IsNullOrWhiteSpace(TextoFiltro) || e.NombreCliente.Contains(TextoFiltro, StringComparison.OrdinalIgnoreCase)) &&
+				(!FechaDesde.HasValue || e.Fecha.Date >= FechaDesde.Value.Date) &&
+				(!Fechahasta.HasValue || e.Fecha.Date <= Fechahasta.Value.Date)
+			)
+			.ToList();
+	}
+
+	private async Task Eliminar(int id)
+	{
+		var ok = await registroServices.Eliminar(id);
+		if (ok)
+		{
+			ListPedido = await registroServices.Listar(e => true);
+			Buscar();
+		}
+	}
 }
+
