@@ -81,7 +81,7 @@
                                 <td>@comp?.Descripcion</td>
                                 <td>@det.precio</td>
                                 <td>@det.Cantidad</td>
-                                <td>@(det.Cantidad* det.precio).ToString("0.00")</td>
+                                <td>@(det.Cantidad* det.precio)</td>
                                 <td>
                                     <button class="btn btn-danger btn-sm" @onclick="() => EliminarDetalle(det)">
                                         <i class="bi bi-trash"></i>
